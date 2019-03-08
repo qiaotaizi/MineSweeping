@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -15,6 +16,7 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 using Windows.UI.Xaml.Shapes;
+using MineSweeping.Models;
 
 // https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x804 上介绍了“空白页”项模板
 
@@ -30,36 +32,27 @@ namespace MineSweeping
 
         public static int PoolSize = 10;
 
+        public ObservableCollection<MineBlock> MineBlocks;
+
         public GridLength GridLength = new GridLength(PoolSize * _blockWidth);
 
         public MainPage()
         {
             this.InitializeComponent();
-            GridLength blockWid = new GridLength(_blockWidth);
-            for (var i = 0; i < PoolSize; i++)
-            {
-                MinePoolGrid.RowDefinitions.Add(new RowDefinition() {Height=blockWid });
-                MinePoolGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width=blockWid});
-            }
 
-            for(var row = 0; row < PoolSize; row++)
+            MineBlocks = new ObservableCollection<MineBlock>();
+            for(int i = 0; i < 100; i++)
             {
-                for(var col = 0; col < PoolSize; col++)
-                {
-                    Button b = new Button() {Width=_blockWidth,Height=_blockWidth };
-                    Grid.SetRow(b, row);
-                    Grid.SetColumn(b, col);
-                    b.Margin = new Thickness(1);
-                    b.Click += MineButton_Click;
-                    MinePoolGrid.Children.Add(b);
-
-                }
+                MineBlocks.Add(new MineBlock() { CordX = 1, CordY = 1, isMine = true, MinesAround = 1 });
             }
+            
+
         }
 
-        private void MineButton_Click(object sender, RoutedEventArgs e)
+        private void ReloadButton_Click(object sender, RoutedEventArgs e)
         {
-            Debug.WriteLine("出发了点击事件");
+            var rootFrame=Window.Current.Content as Frame;
+            rootFrame.Navigate(typeof(MainPage));
         }
     }
 }

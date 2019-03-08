@@ -5,9 +5,22 @@
     xmlns:local="using:MineSweeping"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:model="using:MineSweeping.Models"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
+    <Page.Resources>
+        <DataTemplate x:Key="MineBlockTemplate" x:DataType="model:MineBlock">
+            <Grid Margin="-1">
+                <Button Width="40" Height="40" />
+                <TextBlock Text="{x:Bind CordX}" Visibility="Collapsed" />
+                <TextBlock Text="{x:Bind CordY}" Visibility="Collapsed" />
+                <TextBlock Text="{x:Bind isMine}" Visibility="Collapsed" />
+                <TextBlock Text="{x:Bind MinesAround}" Visibility="Collapsed" />
+            </Grid>
+        </DataTemplate>
+    </Page.Resources>
+    
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
@@ -20,7 +33,18 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <Grid Name="MinePoolGrid" Grid.Row="1" />
+            <Button Name="ReloadButton" Click="ReloadButton_Click" Content="重来" />
+            <GridView Grid.Row="1"  
+                      ItemTemplate="{StaticResource MineBlockTemplate}" 
+                      ItemsSource="{x:Bind MineBlocks}"
+                      IsItemClickEnabled="False">
+                <GridView.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <ItemsWrapGrid MaximumRowsOrColumns="10" />
+                        
+                    </ItemsPanelTemplate>
+                </GridView.ItemsPanel>
+            </GridView>
         </Grid>
     </Grid>
 </Page>
