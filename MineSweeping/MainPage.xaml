@@ -11,11 +11,15 @@
 
     <Page.Resources>
         <DataTemplate x:Key="MineBlockTemplate" x:DataType="model:MineBlock">
-            <Grid Margin="-1">
-                <Button Width="40" Height="40" />
+            <Grid>
+                <Button Width="40" Height="40" Background="{x:Bind Color}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{x:Bind MinesAround,Mode=OneWay}" />
+                    </StackPanel>
+                </Button>
                 <TextBlock Text="{x:Bind CordX}" Visibility="Collapsed" />
                 <TextBlock Text="{x:Bind CordY}" Visibility="Collapsed" />
-                <TextBlock Text="{x:Bind isMine}" Visibility="Collapsed" />
+                <TextBlock Text="{x:Bind IsMine}" Visibility="Collapsed" />
                 <TextBlock Text="{x:Bind MinesAround}" Visibility="Collapsed" />
             </Grid>
         </DataTemplate>
@@ -41,7 +45,6 @@
                 <GridView.ItemsPanel>
                     <ItemsPanelTemplate>
                         <ItemsWrapGrid MaximumRowsOrColumns="10" />
-                        
                     </ItemsPanelTemplate>
                 </GridView.ItemsPanel>
             </GridView>
