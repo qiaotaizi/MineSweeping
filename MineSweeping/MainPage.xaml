@@ -10,21 +10,27 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Page.Resources>
+
+        <Style x:Key="BlockFontStyle" TargetType="TextBlock">
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        
         <DataTemplate x:Key="MineBlockTemplate" x:DataType="model:MineBlock">
-            <Grid>
-                <Button Width="40" Height="40" Background="{x:Bind Color}">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{x:Bind MinesAround,Mode=OneWay}" />
-                    </StackPanel>
-                </Button>
+            <Grid Width="40" Height="40" Background="{x:Bind Color,Mode=OneWay}">
+                <TextBlock Text="{x:Bind ShowText,Mode=OneWay}" 
+                           Visibility="{x:Bind ShowNum,Mode=OneWay}"
+                           Foreground="{x:Bind NumColor,Mode=OneWay}"
+                           Style="{StaticResource BlockFontStyle}"/>
                 <TextBlock Text="{x:Bind CordX}" Visibility="Collapsed" />
                 <TextBlock Text="{x:Bind CordY}" Visibility="Collapsed" />
                 <TextBlock Text="{x:Bind IsMine}" Visibility="Collapsed" />
-                <TextBlock Text="{x:Bind MinesAround}" Visibility="Collapsed" />
             </Grid>
         </DataTemplate>
     </Page.Resources>
-    
+
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
@@ -41,7 +47,8 @@
             <GridView Grid.Row="1"  
                       ItemTemplate="{StaticResource MineBlockTemplate}" 
                       ItemsSource="{x:Bind MineBlocks}"
-                      IsItemClickEnabled="False">
+                      IsItemClickEnabled="true" 
+                      ItemClick="MineBlock_Click">
                 <GridView.ItemsPanel>
                     <ItemsPanelTemplate>
                         <ItemsWrapGrid MaximumRowsOrColumns="10" />

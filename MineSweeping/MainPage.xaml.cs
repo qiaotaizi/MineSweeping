@@ -83,6 +83,8 @@ namespace MineSweeping
             if (isMine)
             {
                 mine.MinesAround = 0;
+                mine.ShowText = "x";
+                mine.NumColor = MineBlock.NumColorArr[0];
             }
             else
             {
@@ -92,14 +94,25 @@ namespace MineSweeping
                 {
                     for (var y = -1; y < 2; y++)
                     {
-                        if (CordInMineArr(x, y))
+                        if (CordInMineArr(mine.CordX+x, mine.CordY+y))
                         {
                             ma++;
                         }
                     }
                 }
                 mine.MinesAround = ma;
+                if (ma == 0)
+                {
+                    mine.ShowText = "";
+                }
+                else
+                {
+                    mine.ShowText = ma.ToString();
+                }
+                mine.NumColor = MineBlock.NumColorArr[ma];
             }
+            mine.Color = MineBlock.COVERED;
+            mine.ShowNum = Visibility.Collapsed;
         }
 
         //初始化块信息
@@ -120,7 +133,8 @@ namespace MineSweeping
             if (isMine)
             {
                 mine.MinesAround = 0;
-                mine.Color = MineBlock.IS_MINE;
+                mine.ShowText = "x";
+                mine.NumColor = MineBlock.NumColorArr[0];
             }
             else
             {
@@ -137,8 +151,17 @@ namespace MineSweeping
                     }
                 }
                 mine.MinesAround = ma;
-                mine.Color = MineBlock.IS_NOT_MINE;
+                if (ma == 0)
+                {
+                    mine.ShowText = "";
+                }
+                else
+                {
+                    mine.ShowText = ma.ToString();
+                }
+                mine.NumColor = MineBlock.NumColorArr[ma];
             }
+            mine.Color = MineBlock.COVERED;
             Debug.WriteLine("Mine="+mine.CordX+","+mine.CordY+","+mine.IsMine+","+mine.MinesAround);
         }
 
@@ -187,6 +210,16 @@ namespace MineSweeping
         private void ReloadButton_Click(object sender, RoutedEventArgs e)
         {
             ReloadData();
+        }
+
+        //单击打开
+        private void MineBlock_Click(object sender, ItemClickEventArgs e)
+        {
+            var clicked=e.ClickedItem as MineBlock;
+            clicked.ShowNum = Visibility.Visible;
+            clicked.Color = MineBlock.DISCOVERED;
+            //如果非雷且数字为0
+            //扩展周围显示
         }
     }
 }
