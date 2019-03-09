@@ -27,26 +27,28 @@ namespace MineSweeping
     /// </summary>
     public sealed partial class MainPage : Page
     {
-
-        private static int _blockWidth = 50;
-
-        //雷池长宽 同时也是地雷数量
+        //雷池长宽 地雷数量
         public static int PoolSize = 10;
 
+        //地雷随机位置生成器
         private static Random _mineGenerator = new Random();
 
+        //mvvm集合
         public ObservableCollection<MineBlock> MineBlocks;
 
-        public GridLength GridLength = new GridLength(PoolSize * _blockWidth);
-
+        //地雷坐标数组
         private int[,] _mineArr;
 
+        private int _mineMarked=0;
+
+        //初始化方法
         public MainPage()
         {
             this.InitializeComponent();
             LoadData();
         }
 
+        //加载雷池数据
         private void LoadData()
         {
             RefreshMineArr();
@@ -59,15 +61,21 @@ namespace MineSweeping
             }
         }
 
+        //重新加载雷池数据
         private void ReloadData()
         {
             RefreshMineArr();
+            _mineMarked = 0;
             foreach (MineBlock block in MineBlocks)
             {
                 ReinitMineBlock(block);
+                block.ShowNum = Visibility.Collapsed;
+                block.ShowRightClick = Visibility.Collapsed;
+                block.RightClickStatus = 0;
             }
         }
 
+        //重新初始化地雷块
         private void ReinitMineBlock(MineBlock mine)
         {
             var isMine = false;
@@ -83,7 +91,7 @@ namespace MineSweeping
             if (isMine)
             {
                 mine.MinesAround = 0;
-                mine.ShowText = "x";
+                mine.ShowText = "※";
                 mine.NumColor = MineBlock.NumColorArr[0];
             }
             else
@@ -94,7 +102,7 @@ namespace MineSweeping
                 {
                     for (var y = -1; y < 2; y++)
                     {
-                        if (CordInMineArr(mine.CordX+x, mine.CordY+y))
+                        if (CordInMineArr(mine.CordX + x, mine.CordY + y))
                         {
                             ma++;
                         }
@@ -112,7 +120,6 @@ namespace MineSweeping
                 mine.NumColor = MineBlock.NumColorArr[ma];
             }
             mine.Color = MineBlock.COVERED;
-            mine.ShowNum = Visibility.Collapsed;
         }
 
         //初始化块信息
@@ -120,56 +127,18 @@ namespace MineSweeping
         {
             mine.CordX = i % PoolSize;
             mine.CordY = i / PoolSize;
-            var isMine = false;
-            for(int j = 0; j < PoolSize; j++)
-            {
-                if(mine.CordX==_mineArr[j,0] && mine.CordY == _mineArr[j, 1])
-                {
-                    isMine = true;
-                    break;
-                }
-            }
-            mine.IsMine = isMine;
-            if (isMine)
-            {
-                mine.MinesAround = 0;
-                mine.ShowText = "x";
-                mine.NumColor = MineBlock.NumColorArr[0];
-            }
-            else
-            {
-                var ma = 0;
-                //计算周围数量
-                for (var x=-1;x<2;x++)
-                {
-                    for (var y=-1;y<2;y++)
-                    {
-                        if (CordInMineArr(mine.CordX+x, mine.CordY+y))
-                        {
-                            ma++;
-                        }
-                    }
-                }
-                mine.MinesAround = ma;
-                if (ma == 0)
-                {
-                    mine.ShowText = "";
-                }
-                else
-                {
-                    mine.ShowText = ma.ToString();
-                }
-                mine.NumColor = MineBlock.NumColorArr[ma];
-            }
-            mine.Color = MineBlock.COVERED;
-            Debug.WriteLine("Mine="+mine.CordX+","+mine.CordY+","+mine.IsMine+","+mine.MinesAround);
+
+            //复用重新加载地雷块的逻辑
+            ReinitMineBlock(mine);
+
         }
 
+        //判断给定坐标是否是地雷
         private bool CordInMineArr(int x, int y)
         {
-            for(var i = 0; i < PoolSize; i++)
+            for (var i = 0; i < PoolSize; i++)
             {
-                if (_mineArr[i,0]==x && _mineArr[i,1]==y)
+                if (_mineArr[i, 0] == x && _mineArr[i, 1] == y)
                 {
                     return true;
                 }
@@ -177,19 +146,19 @@ namespace MineSweeping
             return false;
         }
 
-        //刷新/重置数组
+        //刷新/重置地雷坐标数组
         private void RefreshMineArr()
         {
             _mineArr = new int[PoolSize, 2];
             for (int i = 0; i < PoolSize;)
             {
-                var randX = _mineGenerator.Next(0,PoolSize-1);
-                var randY = _mineGenerator.Next(0,PoolSize-1);
+                var randX = _mineGenerator.Next(0, PoolSize - 1);
+                var randY = _mineGenerator.Next(0, PoolSize - 1);
                 bool foundSameCord = false;
                 //向前遍历
                 for (int j = 0; j < i; j++)
                 {
-                    if(randX==_mineArr[j,0] && randY == _mineArr[j, 1])
+                    if (randX == _mineArr[j, 0] && randY == _mineArr[j, 1])
                     {
                         //生成的两次位置相同,重新随机位置
                         foundSameCord = true;
@@ -202,24 +171,216 @@ namespace MineSweeping
                 }
                 _mineArr[i, 0] = randX;
                 _mineArr[i, 1] = randY;
-                Debug.WriteLine(i+"索引("+randX+","+randY+")");
                 i++;
             }
         }
 
+        //重新开始点击事件
         private void ReloadButton_Click(object sender, RoutedEventArgs e)
         {
             ReloadData();
         }
 
-        //单击打开
+        //单机地雷事件
         private void MineBlock_Click(object sender, ItemClickEventArgs e)
         {
-            var clicked=e.ClickedItem as MineBlock;
-            clicked.ShowNum = Visibility.Visible;
-            clicked.Color = MineBlock.DISCOVERED;
-            //如果非雷且数字为0
-            //扩展周围显示
+            var clicked = e.ClickedItem as MineBlock;
+            ShowMineBlock(clicked);
+
+        }
+
+        //递归显示被打开的地雷块
+        private void ShowMineBlock(MineBlock mine)
+        {
+            //如果已经被打开,则直接return
+            if (mine.ShowNum == Visibility.Visible)
+            {
+                return;
+            }
+            //如果右击状态非0,直接return
+            if (mine.RightClickStatus != 0)
+            {
+                return;
+            }
+            mine.ShowNum = Visibility.Visible;
+            mine.Color = MineBlock.DISCOVERED;
+            //如果是地雷,终止游戏,显示对话框
+            if (mine.IsMine)
+            {
+                ShowAll();
+                GameOver();
+                return;
+            }
+            if (mine.MinesAround > 0)
+            {
+                return;
+            }
+            //空白块
+            //递归扩展周围显示
+            for (var x = -1; x < 2; x++)
+            {
+                for (var y = -1; y < 2; y++)
+                {
+                    //获取周围8个方块的坐标
+                    var cordXCurr = mine.CordX + x;
+                    var cordYCurr = mine.CordY + y;
+                    MineBlock blockCurr = BlockByCord(cordXCurr, cordYCurr);
+                    if (blockCurr != null)
+                    {
+                        //逻辑上,这里不可能遍历到是地雷的方块
+                        //只可能是数字方块
+                        //所以不会打开地雷
+                        ShowMineBlock(blockCurr);
+                    }
+                }
+            }
+        }
+
+        //根据坐标获得雷池中的方块
+        private MineBlock BlockByCord(int cordXCurr, int cordYCurr)
+        {
+            //判定坐标是否出界
+            if (cordXCurr < 0 || cordXCurr >= PoolSize)
+            {
+                return null;
+            }
+            if (cordYCurr < 0 || cordYCurr >= PoolSize)
+            {
+                return null;
+            }
+            //index/PoolSize=CordY...CordX
+            //index=PoolSize*CordY+CordX
+            int index = PoolSize * cordYCurr + cordXCurr;
+            if (index < 0 || index >= MineBlocks.Count)
+            {
+                return null;
+            }
+            //返回方块
+            return MineBlocks[index];
+        }
+
+        //游戏失败-结束逻辑
+        private async void GameOver()
+        {
+            var gameOverDialog = new GameOverDialog();
+            var result=await gameOverDialog.ShowAsync();
+            if (result == ContentDialogResult.Primary)
+            {
+                //再来一局
+                ReloadData();
+            }
+        }
+
+        //右击事件
+        private void MineBlock_RightTapped(object sender, RightTappedRoutedEventArgs e)
+        {
+            //这个地方原本写的是e.OriginalSource as Grid
+            //但有时类型转换得到的是null
+            //这是因为有些时候OriginalSource 是 ListViewItemPresenter
+            //所以使用FrameworkElement替代之
+            var selected = (e.OriginalSource as FrameworkElement)?.DataContext as MineBlock;
+            //非空校验
+            if (selected == null)
+            {
+                return;
+            }
+            //如果已经被打开,右击失效
+            if (selected.ShowNum == Visibility.Visible)
+            {
+                return;
+            }
+            //第一次右击
+            //标为星号
+            //同时检测是否所有地雷被标为星号,若是,游戏胜利,显示对话框
+            if (selected.RightClickStatus == 0)
+            {
+                selected.ShowRightClick = Visibility.Visible;
+                selected.RightClickShowText = "*";
+                selected.RightClickStatus = 1;
+                _mineMarked++;
+                if (AllMineSweeped())
+                {
+                    ShowAll();
+                    GameSuccess();
+                    return;
+                    
+                }
+                return;
+            }
+            //第二次右击
+            //标为问号
+            if (selected.RightClickStatus == 1)
+            {
+                selected.RightClickShowText = "?";
+                selected.RightClickStatus = 2;
+                _mineMarked--;
+                return;
+            }
+            //第三次右击
+            //消除问号
+            if (selected.RightClickStatus == 2)
+            {
+                selected.ShowRightClick = Visibility.Collapsed;
+                selected.RightClickShowText = "";
+                selected.RightClickStatus = 0;
+                return;
+            }
+        }
+
+
+        //揭示答案
+        private void ShowAll()
+        {
+            foreach(MineBlock block in MineBlocks)
+            {
+                block.ShowNum = Visibility.Visible;
+                block.Color = MineBlock.DISCOVERED;
+                //被标记过的特殊处理
+                if (block.RightClickStatus==1)
+                {
+                    block.ShowRightClick = Visibility.Visible;
+                    if (block.IsMine)
+                    {
+                        block.RightClickShowText = "√";
+                    }
+                    else
+                    {
+                        block.RightClickShowText = "×";
+                    }
+                }
+            }
+        }
+
+        //是否所有的地雷块都被标记
+        private bool AllMineSweeped()
+        {
+            if (_mineMarked != PoolSize)
+            {
+                return false;
+            }
+            for (int i = 0; i < PoolSize; i++)
+            {
+
+                var mineBlock = BlockByCord(_mineArr[i, 0], _mineArr[i, 1]);
+                if (mineBlock.RightClickStatus!=1)
+                {
+                    //未被标记为地雷
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        //游戏胜利
+        private async void GameSuccess()
+        {
+            var successDialog = new SuccessDialog();
+            var result = await successDialog.ShowAsync();
+            if (result == ContentDialogResult.Primary)
+            {
+                ReloadData();
+            }
         }
     }
 }

@@ -17,16 +17,21 @@
             <Setter Property="HorizontalAlignment" Value="Center" />
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
-        
+
         <DataTemplate x:Key="MineBlockTemplate" x:DataType="model:MineBlock">
             <Grid Width="40" Height="40" Background="{x:Bind Color,Mode=OneWay}">
                 <TextBlock Text="{x:Bind ShowText,Mode=OneWay}" 
                            Visibility="{x:Bind ShowNum,Mode=OneWay}"
                            Foreground="{x:Bind NumColor,Mode=OneWay}"
                            Style="{StaticResource BlockFontStyle}"/>
+                <TextBlock Text="{x:Bind RightClickShowText,Mode=OneWay}" 
+                           Visibility="{x:Bind ShowRightClick,Mode=OneWay}"
+                           Foreground="Black"
+                           Style="{StaticResource BlockFontStyle}"/>
                 <TextBlock Text="{x:Bind CordX}" Visibility="Collapsed" />
                 <TextBlock Text="{x:Bind CordY}" Visibility="Collapsed" />
                 <TextBlock Text="{x:Bind IsMine}" Visibility="Collapsed" />
+                <TextBlock Text="{x:Bind RightClickStatus}" Visibility="Collapsed" />
             </Grid>
         </DataTemplate>
     </Page.Resources>
@@ -43,12 +48,24 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <Button Name="ReloadButton" Click="ReloadButton_Click" Content="重来" />
+            <RelativePanel >
+                <StackPanel Orientation="Horizontal"
+                    RelativePanel.AlignHorizontalCenterWithPanel="True" 
+                    RelativePanel.AlignVerticalCenterWithPanel="True">
+                    <Button Name="ReloadButton" 
+                        Click="ReloadButton_Click" 
+                        Content="重新开始" />
+                </StackPanel>
+            </RelativePanel>
+
             <GridView Grid.Row="1"  
                       ItemTemplate="{StaticResource MineBlockTemplate}" 
                       ItemsSource="{x:Bind MineBlocks}"
                       IsItemClickEnabled="true" 
-                      ItemClick="MineBlock_Click">
+                      ItemClick="MineBlock_Click"
+                      IsRightTapEnabled="True"
+                      RightTapped="MineBlock_RightTapped"
+                      SelectionMode="None">
                 <GridView.ItemsPanel>
                     <ItemsPanelTemplate>
                         <ItemsWrapGrid MaximumRowsOrColumns="10" />
