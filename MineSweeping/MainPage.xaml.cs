@@ -27,8 +27,11 @@ namespace MineSweeping
     /// </summary>
     public sealed partial class MainPage : Page
     {
-        //雷池长宽 地雷数量
+        //雷池长宽,默认10
         public static int PoolSize = 10;
+
+        //地雷数量,默认30
+        public static int MineCount = 30;
 
         //地雷随机位置生成器
         private static Random _mineGenerator = new Random();
@@ -39,7 +42,7 @@ namespace MineSweeping
         //地雷坐标数组
         private int[,] _mineArr;
 
-        private int _mineMarked=0;
+        private int _mineMarked = 0;
 
         //初始化方法
         public MainPage()
@@ -53,7 +56,13 @@ namespace MineSweeping
         {
             RefreshMineArr();
             MineBlocks = new ObservableCollection<MineBlock>();
-            for (int i = 0; i < 100; i++)
+            FillMineBlocks();
+        }
+
+        private void FillMineBlocks()
+        {
+
+            for (int i = 0; i < PoolSize * PoolSize; i++)
             {
                 MineBlock mine = new MineBlock();
                 InitMineBlock(mine, i);
@@ -61,25 +70,22 @@ namespace MineSweeping
             }
         }
 
+
+
         //重新加载雷池数据
         private void ReloadData()
         {
             RefreshMineArr();
             _mineMarked = 0;
-            foreach (MineBlock block in MineBlocks)
-            {
-                ReinitMineBlock(block);
-                block.ShowNum = Visibility.Collapsed;
-                block.ShowRightClick = Visibility.Collapsed;
-                block.RightClickStatus = 0;
-            }
+            MineBlocks.Clear();
+            FillMineBlocks();
         }
 
         //重新初始化地雷块
         private void ReinitMineBlock(MineBlock mine)
         {
             var isMine = false;
-            for (int j = 0; j < PoolSize; j++)
+            for (int j = 0; j < MineCount; j++)
             {
                 if (mine.CordX == _mineArr[j, 0] && mine.CordY == _mineArr[j, 1])
                 {
@@ -136,7 +142,7 @@ namespace MineSweeping
         //判断给定坐标是否是地雷
         private bool CordInMineArr(int x, int y)
         {
-            for (var i = 0; i < PoolSize; i++)
+            for (var i = 0; i < MineCount; i++)
             {
                 if (_mineArr[i, 0] == x && _mineArr[i, 1] == y)
                 {
@@ -149,8 +155,8 @@ namespace MineSweeping
         //刷新/重置地雷坐标数组
         private void RefreshMineArr()
         {
-            _mineArr = new int[PoolSize, 2];
-            for (int i = 0; i < PoolSize;)
+            _mineArr = new int[MineCount, 2];
+            for (int i = 0; i < MineCount;)
             {
                 var randX = _mineGenerator.Next(0, PoolSize - 1);
                 var randY = _mineGenerator.Next(0, PoolSize - 1);
@@ -178,7 +184,31 @@ namespace MineSweeping
         //重新开始点击事件
         private void ReloadButton_Click(object sender, RoutedEventArgs e)
         {
-            ReloadData();
+            MenuFlyoutItem selected = sender as MenuFlyoutItem;
+            if (selected != null)
+            {
+                var option = selected.Tag.ToString();
+                switch (option)
+                {
+                    case "five":
+                        PoolSize = 5;
+                        MineCount = 10;
+                        MineGridView.ItemsPanel = Resources["PanelTemplateFive"] as ItemsPanelTemplate;
+                        break;
+                    case "ten":
+                        PoolSize = 10;
+                        MineCount = 30;
+                        MineGridView.ItemsPanel = Resources["PanelTemplateTen"] as ItemsPanelTemplate;
+                        break;
+                    case "fifteen":
+                        PoolSize = 15;
+                        MineCount = 50;
+                        MineGridView.ItemsPanel = Resources["PanelTemplateFifteen"] as ItemsPanelTemplate;
+                        break;
+                }
+
+                ReloadData();
+            }
         }
 
         //单机地雷事件
@@ -263,7 +293,7 @@ namespace MineSweeping
         private async void GameOver()
         {
             var gameOverDialog = new GameOverDialog();
-            var result=await gameOverDialog.ShowAsync();
+            var result = await gameOverDialog.ShowAsync();
             if (result == ContentDialogResult.Primary)
             {
                 //再来一局
@@ -303,7 +333,7 @@ namespace MineSweeping
                     ShowAll();
                     GameSuccess();
                     return;
-                    
+
                 }
                 return;
             }
@@ -331,12 +361,12 @@ namespace MineSweeping
         //揭示答案
         private void ShowAll()
         {
-            foreach(MineBlock block in MineBlocks)
+            foreach (MineBlock block in MineBlocks)
             {
                 block.ShowNum = Visibility.Visible;
                 block.Color = MineBlock.DISCOVERED;
                 //被标记过的特殊处理
-                if (block.RightClickStatus==1)
+                if (block.RightClickStatus == 1)
                 {
                     block.ShowRightClick = Visibility.Visible;
                     if (block.IsMine)
@@ -354,15 +384,15 @@ namespace MineSweeping
         //是否所有的地雷块都被标记
         private bool AllMineSweeped()
         {
-            if (_mineMarked != PoolSize)
+            if (_mineMarked != MineCount)
             {
                 return false;
             }
-            for (int i = 0; i < PoolSize; i++)
+            for (int i = 0; i < MineCount; i++)
             {
 
                 var mineBlock = BlockByCord(_mineArr[i, 0], _mineArr[i, 1]);
-                if (mineBlock.RightClickStatus!=1)
+                if (mineBlock.RightClickStatus != 1)
                 {
                     //未被标记为地雷
                     return false;

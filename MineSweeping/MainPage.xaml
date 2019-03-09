@@ -34,6 +34,20 @@
                 <TextBlock Text="{x:Bind RightClickStatus}" Visibility="Collapsed" />
             </Grid>
         </DataTemplate>
+
+        <ItemsPanelTemplate x:Key="PanelTemplateFive">
+            <ItemsWrapGrid MaximumRowsOrColumns="5" />
+        </ItemsPanelTemplate>
+        
+        <ItemsPanelTemplate x:Key="PanelTemplateTen">
+            <ItemsWrapGrid MaximumRowsOrColumns="10" />
+        </ItemsPanelTemplate>
+
+        <ItemsPanelTemplate x:Key="PanelTemplateFifteen">
+            <ItemsWrapGrid MaximumRowsOrColumns="15" />
+        </ItemsPanelTemplate>
+
+
     </Page.Resources>
 
     <Grid>
@@ -53,8 +67,16 @@
                     RelativePanel.AlignHorizontalCenterWithPanel="True" 
                     RelativePanel.AlignVerticalCenterWithPanel="True">
                     <Button Name="ReloadButton" 
-                        Click="ReloadButton_Click" 
-                        Content="重新开始" />
+                        Content="重新开始" >
+                        <Button.Flyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem Text="5*5(10颗地雷)" Click="ReloadButton_Click" Tag="five"/>
+                                <MenuFlyoutItem Text="10*10(30颗地雷)" Click="ReloadButton_Click" Tag="ten"/>
+                                <MenuFlyoutItem Text="15*15(50颗地雷)" Click="ReloadButton_Click" Tag="fifteen"/>
+                            </MenuFlyout>
+                        </Button.Flyout>
+                    </Button>
+
                 </StackPanel>
             </RelativePanel>
 
@@ -65,12 +87,9 @@
                       ItemClick="MineBlock_Click"
                       IsRightTapEnabled="True"
                       RightTapped="MineBlock_RightTapped"
-                      SelectionMode="None">
-                <GridView.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <ItemsWrapGrid MaximumRowsOrColumns="10" />
-                    </ItemsPanelTemplate>
-                </GridView.ItemsPanel>
+                      SelectionMode="None"
+                      Name="MineGridView"
+                      ItemsPanel="{StaticResource PanelTemplateTen}">
             </GridView>
         </Grid>
     </Grid>
